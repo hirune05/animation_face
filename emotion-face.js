@@ -12,7 +12,7 @@ const emotions = {
     pupilSize: 0.5,
     eyelidAngle: -25, // 目を細める
     pupilShape: 1.0,
-    mouthCurve: 30,
+    mouthCurve: 20,
     mouthOpen: 0.3,
     eyeOpenness: 0.2, // ほぼ閉じた目
   },
@@ -20,7 +20,7 @@ const emotions = {
     pupilSize: 0.6,
     eyelidAngle: -15, // マイナスにして外側が下がるように
     pupilShape: 0.9,
-    mouthCurve: -30,
+    mouthCurve: -20,
     mouthOpen: 0.1,
     eyeOpenness: 0.8,
   },
@@ -36,14 +36,14 @@ const emotions = {
     pupilSize: 1.0,
     eyelidAngle: 25,
     pupilShape: 1.2,
-    mouthCurve: 20,
-    mouthOpen: 0.5,
+    mouthCurve: 15,
+    mouthOpen: 0.4,
     eyeOpenness: 1,
   },
 };
 
 function setup() {
-  let canvas = createCanvas(800, 600);
+  let canvas = createCanvas(500, 400);
   canvas.parent("canvas-container");
 
   // スライダーのイベントリスナーを設定
@@ -77,18 +77,21 @@ function draw() {
 }
 
 function drawEyes() {
-  let eyeSpacing = 150;
+  let eyeSpacing = width * 0.4; // 画面の横幅の40%
   let eyeSize = 120;
+
+  // 画面の高さの60%の位置から中心までのオフセットを計算
+  let eyeY = height * 0.6 - height / 2; // 中心からの相対位置
 
   // 左目
   push();
-  translate(-eyeSpacing / 2, -50);
+  translate(-eyeSpacing / 2, eyeY);
   drawEye(eyeSize, true); // 左目
   pop();
 
   // 右目
   push();
-  translate(eyeSpacing / 2, -50);
+  translate(eyeSpacing / 2, eyeY);
   drawEye(eyeSize, false); // 右目
   pop();
 }
@@ -167,7 +170,9 @@ function drawEye(size, isLeft) {
 
 function drawMouth() {
   push();
-  translate(0, 100);
+  // 画面の高さの75%の位置から中心までのオフセットを計算
+  let mouthY = height * 0.8 - height / 2; // 中心からの相対位置
+  translate(0, mouthY);
 
   fill(200, 0, 0);
   noStroke();
@@ -176,19 +181,19 @@ function drawMouth() {
     // 口が開いている場合
     push();
     scale(1, 1 + faceParams.mouthOpen);
-    arc(0, 0, 120, 80 + faceParams.mouthCurve, 0, PI);
+    arc(0, 0, 80, 80 + faceParams.mouthCurve, 0, PI);
     pop();
   } else {
     // 口が閉じている場合
     if (faceParams.mouthCurve > 0) {
       // 笑顔
-      arc(0, 0, 120, 80, 0, PI);
+      arc(0, 0, 80, 80, 0, PI);
     } else if (faceParams.mouthCurve < 0) {
       // 悲しい顔
-      arc(0, 20, 120, 80, PI, TWO_PI);
+      arc(0, 20, 80, 80, PI, TWO_PI);
     } else {
       // 普通
-      arc(0, 0, 120, 60, 0, PI);
+      arc(0, 0, 80, 60, 0, PI);
     }
   }
 
