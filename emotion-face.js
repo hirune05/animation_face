@@ -25,7 +25,7 @@ const emotions = {
     eyeOpenness: 0.8,
   },
   normal: {
-    pupilSize: 0.7,
+    pupilSize: 0.9,
     eyelidAngle: 0,
     pupilShape: 1.0,
     mouthCurve: 0,
@@ -43,7 +43,7 @@ const emotions = {
 };
 
 function setup() {
-  let canvas = createCanvas(500, 400);
+  let canvas = createCanvas(540, 360);
   canvas.parent("canvas-container");
 
   // スライダーのイベントリスナーを設定
@@ -77,11 +77,11 @@ function draw() {
 }
 
 function drawEyes() {
-  let eyeSpacing = width * 0.4; // 画面の横幅の40%
+  let eyeSpacing = width * 0.42; // 画面の横幅の40%
   let eyeSize = 120;
 
-  // 画面の高さの60%の位置から中心までのオフセットを計算
-  let eyeY = height * 0.6 - height / 2; // 中心からの相対位置
+  // 目を画面の中央に配置
+  let eyeY = 0; // 中心からの相対位置
 
   // 左目
   push();
@@ -170,8 +170,8 @@ function drawEye(size, isLeft) {
 
 function drawMouth() {
   push();
-  // 画面の高さの75%の位置から中心までのオフセットを計算
-  let mouthY = height * 0.8 - height / 2; // 中心からの相対位置
+  // 目との相対位置を保ちながら配置
+  let mouthY = height * 0.26; // 中心からの相対位置
   translate(0, mouthY);
 
   fill(200, 0, 0);
