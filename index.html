@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>感情表現システム</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        #controls {
+            margin: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #parameters {
+            margin: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .param-group {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label {
+            width: 150px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        .value {
+            width: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>感情表現システム</h1>
+    <div id="canvas-container"></div>
+    
+    <div id="controls">
+        <button onclick="setEmotion('happy')">喜んでいる顔</button>
+        <button onclick="setEmotion('sad')">悲しい顔</button>
+        <button onclick="setEmotion('normal')">普通の顔</button>
+        <button onclick="setEmotion('motivated')">やる気に満ち溢れた顔</button>
+    </div>
+    
+    <div id="parameters">
+        <h3>パラメータ調整</h3>
+        <div class="param-group">
+            <label>瞳の大きさ:</label>
+            <input type="range" id="pupilSize" min="0.3" max="1.0" step="0.05" value="0.7">
+            <span class="value" id="pupilSizeValue">0.7</span>
+        </div>
+        <div class="param-group">
+            <label>まぶたの角度:</label>
+            <input type="range" id="eyelidAngle" min="-30" max="30" step="1" value="0">
+            <span class="value" id="eyelidAngleValue">0</span>
+        </div>
+        <div class="param-group">
+            <label>瞳の形(縦横比):</label>
+            <input type="range" id="pupilShape" min="0.5" max="1.5" step="0.05" value="1.0">
+            <span class="value" id="pupilShapeValue">1.0</span>
+        </div>
+        <div class="param-group">
+            <label>口の曲がり具合:</label>
+            <input type="range" id="mouthCurve" min="-50" max="50" step="1" value="0">
+            <span class="value" id="mouthCurveValue">0</span>
+        </div>
+        <div class="param-group">
+            <label>口の開き具合:</label>
+            <input type="range" id="mouthOpen" min="0" max="1" step="0.05" value="0">
+            <span class="value" id="mouthOpenValue">0</span>
+        </div>
+        <div class="param-group">
+            <label>目の開き具合:</label>
+            <input type="range" id="eyeOpenness" min="0" max="1" step="0.05" value="1">
+            <span class="value" id="eyeOpennessValue">1</span>
+        </div>
+    </div>
+    
+    <script src="emotion-face.js"></script>
+</body>
+</html>
