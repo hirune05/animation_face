@@ -1,6 +1,7 @@
 let faceParams = {
   pupilSize: 0.7,
-  eyeAndEyelidRotation: 0,
+  eyeRotation: 0,
+  eyelidAngle: 0,
   mouthCurve: 0,
   mouthOpen: 0,
   eyeOpenness: 1,
@@ -11,7 +12,8 @@ let faceParams = {
 const emotions = {
   happy: {
     pupilSize: 0.5,
-    eyeAndEyelidRotation: -25, // 目と瞼が下に傾く（優しい目）
+    eyeRotation: -10, // 目自体は少し下向き
+    eyelidAngle: -25, // 瞼が下に傾く（優しい目）
     mouthCurve: 20,
     mouthOpen: 0.3,
     eyeOpenness: 0.2, // ほぼ閉じた目
@@ -20,7 +22,8 @@ const emotions = {
   },
   sad: {
     pupilSize: 0.6,
-    eyeAndEyelidRotation: -15, // 目と瞼が下に傾く（悲しい目）
+    eyeRotation: -5, // 目自体はわずかに下向き
+    eyelidAngle: -15, // 瞼が下に傾く（悲しい目）
     pupilShape: 0.9,
     mouthCurve: -20,
     mouthOpen: 0.1,
@@ -40,7 +43,8 @@ const emotions = {
   },
   motivated: {
     pupilSize: 1.0,
-    eyeAndEyelidRotation: 25,
+    eyeRotation: 10, // 目自体は少し上向き
+    eyelidAngle: 25, // 瞼が上に傾く（やる気目）
     mouthCurve: 15,
     mouthOpen: 0.4,
     eyeOpenness: 1,
@@ -49,7 +53,8 @@ const emotions = {
   },
   angry: {
     pupilSize: 0.8,
-    eyeAndEyelidRotation: 20, // 目と瞼が上に傾く（釣り目）
+    eyeRotation: 5, // 目自体はわずかに上向き
+    eyelidAngle: 20, // 瞼が上に傾く（釣り目）
     mouthCurve: -15, // 口角が下がる
     mouthOpen: 0.3, // 少し開いて歯を食いしばった感じ
     eyeOpenness: 0.9,
@@ -58,7 +63,8 @@ const emotions = {
   },
   laughing: {
     pupilSize: 0.4,
-    eyeAndEyelidRotation: -20, // 目と瞼が大きく下に傾く（爆笑）
+    eyeRotation: -10, // 目自体は少し下向き
+    eyelidAngle: -20, // 瞼が大きく下に傾く（爆笑）
     mouthCurve: 30, // 口角が最大限に上がる
     mouthOpen: 1.5, // 口を最大限に開ける
     eyeOpenness: 0.3, // 目をかなり細める
@@ -73,9 +79,8 @@ function setup() {
 
   // スライダーのイベントリスナーを設定
   document.getElementById("pupilSize").addEventListener("input", updateParams);
-  document
-    .getElementById("eyeAndEyelidRotation")
-    .addEventListener("input", updateParams);
+  document.getElementById("eyeRotation").addEventListener("input", updateParams);
+  document.getElementById("eyelidAngle").addEventListener("input", updateParams);
   document.getElementById("mouthCurve").addEventListener("input", updateParams);
   document.getElementById("mouthOpen").addEventListener("input", updateParams);
   document
@@ -129,10 +134,8 @@ function drawEyes() {
 function drawEye(size, isLeft) {
   push();
   // 左右で角度を反転させる（目全体の回転）
-  let angle = isLeft
-    ? faceParams.eyeAndEyelidRotation
-    : -faceParams.eyeAndEyelidRotation;
-  rotate(radians(angle));
+  let eyeAngle = isLeft ? faceParams.eyeRotation : -faceParams.eyeRotation;
+  rotate(radians(eyeAngle));
 
   // 白目部分
   fill(240, 255, 240);
@@ -169,7 +172,7 @@ function drawEye(size, isLeft) {
   }
 
   // まぶたの効果（目の中に線を引いて上部を塗りつぶす）
-  if (abs(angle) > 0 || faceParams.eyelidStrength > 0) {
+  if (abs(faceParams.eyelidAngle) > 0 || faceParams.eyelidStrength > 0) {
     // まぶたの線の位置を計算（出具合のみで決定）
     let eyelidY = -size * 0.5 + size * 1.2 * faceParams.eyelidStrength; // 出具合による位置
 
@@ -182,9 +185,10 @@ function drawEye(size, isLeft) {
     drawingContext.arc(0, 0, size / 2 - 1, 0, TWO_PI);
     drawingContext.clip();
 
-    // 角度に応じて傾いた瞼を描画
+    // 瞼の角度に応じて傾いた瞼を描画
     push();
-    rotate(radians(angle * 0.5)); // 瞼の角度（目の角度の半分）
+    let lidAngle = isLeft ? faceParams.eyelidAngle : -faceParams.eyelidAngle;
+    rotate(radians(lidAngle * 0.5)); // 瞼の角度
 
     // まぶたの線より上を白で塗りつぶす
     fill(240, 255, 240); // 白目と同じ色
@@ -366,8 +370,11 @@ function setEmotion(emotionName) {
 
 function updateParams() {
   faceParams.pupilSize = parseFloat(document.getElementById("pupilSize").value);
-  faceParams.eyeAndEyelidRotation = parseFloat(
-    document.getElementById("eyeAndEyelidRotation").value
+  faceParams.eyeRotation = parseFloat(
+    document.getElementById("eyeRotation").value
+  );
+  faceParams.eyelidAngle = parseFloat(
+    document.getElementById("eyelidAngle").value
   );
   faceParams.mouthCurve = parseFloat(
     document.getElementById("mouthCurve").value
@@ -385,8 +392,10 @@ function updateParams() {
 
   // 値の表示を更新
   document.getElementById("pupilSizeValue").textContent = faceParams.pupilSize;
-  document.getElementById("eyeAndEyelidRotationValue").textContent =
-    faceParams.eyeAndEyelidRotation;
+  document.getElementById("eyeRotationValue").textContent =
+    faceParams.eyeRotation;
+  document.getElementById("eyelidAngleValue").textContent =
+    faceParams.eyelidAngle;
   document.getElementById("mouthCurveValue").textContent =
     faceParams.mouthCurve;
   document.getElementById("mouthOpenValue").textContent = faceParams.mouthOpen;
