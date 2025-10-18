@@ -5,6 +5,7 @@ let faceParams = {
   mouthOpen: 0,
   eyeOpenness: 1,
   eyelidStrength: 0,
+  lowerEyelidStrength: 0,
 };
 
 const emotions = {
@@ -15,6 +16,7 @@ const emotions = {
     mouthOpen: 0.3,
     eyeOpenness: 0.2, // ほぼ閉じた目
     eyelidStrength: 0.25, // 瞼が強く出ている
+    lowerEyelidStrength: 0.1, // 下瞼は少し出ている
   },
   sad: {
     pupilSize: 0.6,
@@ -24,6 +26,7 @@ const emotions = {
     mouthOpen: 0.1,
     eyeOpenness: 0.8,
     eyelidStrength: 0.18, // 瞼が中程度に出ている
+    lowerEyelidStrength: 0.15, // 下瞼も中程度に出ている
   },
   normal: {
     pupilSize: 0.9,
@@ -33,6 +36,7 @@ const emotions = {
     mouthOpen: 0,
     eyeOpenness: 1,
     eyelidStrength: 0, // 瞼は出ていない
+    lowerEyelidStrength: 0, // 下瞼も出ていない
   },
   motivated: {
     pupilSize: 1.0,
@@ -41,6 +45,7 @@ const emotions = {
     mouthOpen: 0.4,
     eyeOpenness: 1,
     eyelidStrength: 0.15, // 瞼が少し出ている
+    lowerEyelidStrength: 0.05, // 下瞼はわずかに出ている
   },
   angry: {
     pupilSize: 0.8,
@@ -49,6 +54,7 @@ const emotions = {
     mouthOpen: 0.3, // 少し開いて歯を食いしばった感じ
     eyeOpenness: 0.9,
     eyelidStrength: 0.15, // 少し瞼が出て険しい表情
+    lowerEyelidStrength: 0.2, // 下瞼も出て険しさを強調
   },
   laughing: {
     pupilSize: 0.4,
@@ -57,6 +63,7 @@ const emotions = {
     mouthOpen: 1.5, // 口を最大限に開ける
     eyeOpenness: 0.3, // 目をかなり細める
     eyelidStrength: 0.25, // 瞼が強く出る（笑いすぎて目が細くなる）
+    lowerEyelidStrength: 0.15, // 下瞼も出て笑い目になる
   },
 };
 
@@ -76,6 +83,9 @@ function setup() {
     .addEventListener("input", updateParams);
   document
     .getElementById("eyelidStrength")
+    .addEventListener("input", updateParams);
+  document
+    .getElementById("lowerEyelidStrength")
     .addEventListener("input", updateParams);
 }
 
@@ -185,6 +195,47 @@ function drawEye(size, isLeft) {
     line(-size, eyelidY, size, eyelidY);
 
     pop();
+
+    drawingContext.restore();
+    pop();
+  }
+
+  // 下瞼を描画
+  if (faceParams.lowerEyelidStrength > 0) {
+    push();
+    drawingContext.save();
+
+    // 円形のクリッピングパスを作成（少し内側にして輪郭を残す）
+    drawingContext.beginPath();
+    drawingContext.arc(0, 0, size / 2 - 1, 0, TWO_PI);
+    drawingContext.clip();
+
+    // 下瞼の位置をパラメータで調整
+    let lowerEyelidY = size * 0.5 - size * faceParams.lowerEyelidStrength;
+    let arcHeight = size * 0.2 + size * faceParams.lowerEyelidStrength * 0.3;
+    
+    // 下瞼から下の部分をピンクで塗りつぶす
+    fill(255, 235, 250); // 背景と同じピンク色
+    noStroke();
+    beginShape();
+    // 弧の開始点（左端）
+    vertex(-size * 0.35, lowerEyelidY);
+    // 弧に沿って描画
+    for (let angle = PI; angle <= TWO_PI; angle += 0.1) {
+      let x = cos(angle) * size * 0.35;
+      let y = lowerEyelidY + sin(angle) * arcHeight * 0.5;
+      vertex(x, y);
+    }
+    // 下端まで塗りつぶす
+    vertex(size * 0.35, size);
+    vertex(-size * 0.35, size);
+    endShape(CLOSE);
+    
+    // 下瞼の線を描画（上向きの弧）
+    stroke(0);
+    strokeWeight(2);
+    noFill();
+    arc(0, lowerEyelidY, size * 0.7, arcHeight, PI, TWO_PI);
 
     drawingContext.restore();
     pop();
@@ -303,6 +354,9 @@ function updateParams() {
   faceParams.eyelidStrength = parseFloat(
     document.getElementById("eyelidStrength").value
   );
+  faceParams.lowerEyelidStrength = parseFloat(
+    document.getElementById("lowerEyelidStrength").value
+  );
 
   // 値の表示を更新
   document.getElementById("pupilSizeValue").textContent = faceParams.pupilSize;
@@ -315,4 +369,6 @@ function updateParams() {
     faceParams.eyeOpenness;
   document.getElementById("eyelidStrengthValue").textContent =
     faceParams.eyelidStrength;
+  document.getElementById("lowerEyelidStrengthValue").textContent =
+    faceParams.lowerEyelidStrength;
 }
