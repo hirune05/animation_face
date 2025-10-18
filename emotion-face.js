@@ -1,44 +1,62 @@
 let faceParams = {
   pupilSize: 0.7,
-  eyelidAngle: 0,
-  pupilShape: 1.0,
+  eyeAndEyelidRotation: 0,
   mouthCurve: 0,
   mouthOpen: 0,
   eyeOpenness: 1,
+  eyelidStrength: 0,
 };
 
 const emotions = {
   happy: {
     pupilSize: 0.5,
-    eyelidAngle: -25, // 目を細める
-    pupilShape: 1.0,
+    eyeAndEyelidRotation: -25, // 目と瞼が下に傾く（優しい目）
     mouthCurve: 20,
     mouthOpen: 0.3,
     eyeOpenness: 0.2, // ほぼ閉じた目
+    eyelidStrength: 0.25, // 瞼が強く出ている
   },
   sad: {
     pupilSize: 0.6,
-    eyelidAngle: -15, // マイナスにして外側が下がるように
+    eyeAndEyelidRotation: -15, // 目と瞼が下に傾く（悲しい目）
     pupilShape: 0.9,
     mouthCurve: -20,
     mouthOpen: 0.1,
     eyeOpenness: 0.8,
+    eyelidStrength: 0.18, // 瞼が中程度に出ている
   },
   normal: {
     pupilSize: 0.9,
+    eyeRotation: 0,
     eyelidAngle: 0,
-    pupilShape: 1.0,
     mouthCurve: 0,
     mouthOpen: 0,
     eyeOpenness: 1,
+    eyelidStrength: 0, // 瞼は出ていない
   },
   motivated: {
     pupilSize: 1.0,
-    eyelidAngle: 25,
-    pupilShape: 1.2,
+    eyeAndEyelidRotation: 25,
     mouthCurve: 15,
     mouthOpen: 0.4,
     eyeOpenness: 1,
+    eyelidStrength: 0.15, // 瞼が少し出ている
+  },
+  angry: {
+    pupilSize: 0.8,
+    eyeAndEyelidRotation: 20, // 目と瞼が上に傾く（釣り目）
+    mouthCurve: -15, // 口角が下がる
+    mouthOpen: 0.3, // 少し開いて歯を食いしばった感じ
+    eyeOpenness: 0.9,
+    eyelidStrength: 0.15, // 少し瞼が出て険しい表情
+  },
+  laughing: {
+    pupilSize: 0.4,
+    eyeAndEyelidRotation: -20, // 目と瞼が大きく下に傾く（爆笑）
+    mouthCurve: 30, // 口角が最大限に上がる
+    mouthOpen: 1.5, // 口を最大限に開ける
+    eyeOpenness: 0.3, // 目をかなり細める
+    eyelidStrength: 0.25, // 瞼が強く出る（笑いすぎて目が細くなる）
   },
 };
 
@@ -49,13 +67,15 @@ function setup() {
   // スライダーのイベントリスナーを設定
   document.getElementById("pupilSize").addEventListener("input", updateParams);
   document
-    .getElementById("eyelidAngle")
+    .getElementById("eyeAndEyelidRotation")
     .addEventListener("input", updateParams);
-  document.getElementById("pupilShape").addEventListener("input", updateParams);
   document.getElementById("mouthCurve").addEventListener("input", updateParams);
   document.getElementById("mouthOpen").addEventListener("input", updateParams);
   document
     .getElementById("eyeOpenness")
+    .addEventListener("input", updateParams);
+  document
+    .getElementById("eyelidStrength")
     .addEventListener("input", updateParams);
 }
 
@@ -98,8 +118,8 @@ function drawEyes() {
 
 function drawEye(size, isLeft) {
   push();
-  // 左右で角度を反転させる
-  let angle = isLeft ? faceParams.eyelidAngle : -faceParams.eyelidAngle;
+  // 左右で角度を反転させる（目全体の回転）
+  let angle = isLeft ? faceParams.eyeAndEyelidRotation : -faceParams.eyeAndEyelidRotation;
   rotate(radians(angle));
 
   // 白目部分
@@ -125,8 +145,7 @@ function drawEye(size, isLeft) {
     fill(0);
     noStroke();
     let pupilWidth = size * 0.7 * faceParams.pupilSize;
-    let pupilHeight =
-      pupilWidth * faceParams.pupilShape * faceParams.eyeOpenness;
+    let pupilHeight = pupilWidth * faceParams.eyeOpenness;
     ellipse(0, 0, pupilWidth, pupilHeight);
 
     // 光の反射（目が開いているときのみ）
@@ -138,9 +157,9 @@ function drawEye(size, isLeft) {
   }
 
   // まぶたの効果（目の中に線を引いて上部を塗りつぶす）
-  if (abs(angle) > 5) {
-    // まぶたの線の位置を計算
-    let eyelidY = -size * 0.3 * (abs(angle) / 30); // 角度に応じてまぶたの位置を調整
+  if (abs(angle) > 0 || faceParams.eyelidStrength > 0) {
+    // まぶたの線の位置を計算（出具合のみで決定）
+    let eyelidY = -size * 0.5 + size * 1.2 * faceParams.eyelidStrength; // 出具合による位置
 
     // クリッピングマスクで目の円の中だけ描画
     push();
@@ -151,15 +170,21 @@ function drawEye(size, isLeft) {
     drawingContext.arc(0, 0, size / 2 - 1, 0, TWO_PI);
     drawingContext.clip();
 
+    // 角度に応じて傾いた瞼を描画
+    push();
+    rotate(radians(angle * 0.5)); // 瞼の角度（目の角度の半分）
+
     // まぶたの線より上を白で塗りつぶす
     fill(240, 255, 240); // 白目と同じ色
     noStroke();
-    rect(-size / 2, -size / 2, size, size / 2 + eyelidY);
+    rect(-size, -size, size * 2, size + eyelidY);
 
     // まぶたの線を描く
     stroke(0);
     strokeWeight(2);
-    line(-size / 2, eyelidY, size / 2, eyelidY);
+    line(-size, eyelidY, size, eyelidY);
+
+    pop();
 
     drawingContext.restore();
     pop();
@@ -174,27 +199,72 @@ function drawMouth() {
   let mouthY = height * 0.26; // 中心からの相対位置
   translate(0, mouthY);
 
-  fill(200, 0, 0);
-  noStroke();
+  // 口を描画
+  stroke(200, 0, 0);
+  strokeWeight(4);
+  noFill();
 
+  // 口の基本的な幅と高さ
+  let mouthWidth = 80;
+  let mouthHeight = 10;
+  
+  // 口角の上がり具合（-30〜30）
+  let cornerLift = faceParams.mouthCurve;
+  
+  // 口が開いている場合は高さを調整
   if (faceParams.mouthOpen > 0) {
-    // 口が開いている場合
-    push();
-    scale(1, 1 + faceParams.mouthOpen);
-    arc(0, 0, 80, 80 + faceParams.mouthCurve, 0, PI);
-    pop();
+    mouthHeight = mouthHeight + faceParams.mouthOpen * 40;
+  }
+  
+  // ベジェ曲線で口を描画
+  beginShape();
+  
+  // 左端
+  let leftX = -mouthWidth / 2;
+  let leftY = -cornerLift;
+  
+  // 右端
+  let rightX = mouthWidth / 2;
+  let rightY = -cornerLift;
+  
+  // 中央
+  let centerY = cornerLift * 0.5;
+  
+  // 上唇
+  vertex(leftX, leftY);
+  bezierVertex(
+    leftX + mouthWidth * 0.25, centerY - mouthHeight/2,
+    rightX - mouthWidth * 0.25, centerY - mouthHeight/2,
+    rightX, rightY
+  );
+  
+  // 口が開いている場合は下唇も描く
+  if (faceParams.mouthOpen > 0) {
+    bezierVertex(
+      rightX - mouthWidth * 0.25, centerY + mouthHeight/2,
+      leftX + mouthWidth * 0.25, centerY + mouthHeight/2,
+      leftX, leftY
+    );
+    endShape(CLOSE);
+    
+    // 口の中を塗りつぶす
+    fill(200, 0, 0);
+    noStroke();
+    beginShape();
+    vertex(leftX, leftY);
+    bezierVertex(
+      leftX + mouthWidth * 0.25, centerY - mouthHeight/2,
+      rightX - mouthWidth * 0.25, centerY - mouthHeight/2,
+      rightX, rightY
+    );
+    bezierVertex(
+      rightX - mouthWidth * 0.25, centerY + mouthHeight/2,
+      leftX + mouthWidth * 0.25, centerY + mouthHeight/2,
+      leftX, leftY
+    );
+    endShape(CLOSE);
   } else {
-    // 口が閉じている場合
-    if (faceParams.mouthCurve > 0) {
-      // 笑顔
-      arc(0, 0, 80, 80, 0, PI);
-    } else if (faceParams.mouthCurve < 0) {
-      // 悲しい顔
-      arc(0, 20, 80, 80, PI, TWO_PI);
-    } else {
-      // 普通
-      arc(0, 0, 80, 60, 0, PI);
-    }
+    endShape();
   }
 
   pop();
@@ -220,11 +290,8 @@ function setEmotion(emotionName) {
 
 function updateParams() {
   faceParams.pupilSize = parseFloat(document.getElementById("pupilSize").value);
-  faceParams.eyelidAngle = parseFloat(
-    document.getElementById("eyelidAngle").value
-  );
-  faceParams.pupilShape = parseFloat(
-    document.getElementById("pupilShape").value
+  faceParams.eyeAndEyelidRotation = parseFloat(
+    document.getElementById("eyeAndEyelidRotation").value
   );
   faceParams.mouthCurve = parseFloat(
     document.getElementById("mouthCurve").value
@@ -233,16 +300,19 @@ function updateParams() {
   faceParams.eyeOpenness = parseFloat(
     document.getElementById("eyeOpenness").value
   );
+  faceParams.eyelidStrength = parseFloat(
+    document.getElementById("eyelidStrength").value
+  );
 
   // 値の表示を更新
   document.getElementById("pupilSizeValue").textContent = faceParams.pupilSize;
-  document.getElementById("eyelidAngleValue").textContent =
-    faceParams.eyelidAngle;
-  document.getElementById("pupilShapeValue").textContent =
-    faceParams.pupilShape;
+  document.getElementById("eyeAndEyelidRotationValue").textContent =
+    faceParams.eyeAndEyelidRotation;
   document.getElementById("mouthCurveValue").textContent =
     faceParams.mouthCurve;
   document.getElementById("mouthOpenValue").textContent = faceParams.mouthOpen;
   document.getElementById("eyeOpennessValue").textContent =
     faceParams.eyeOpenness;
+  document.getElementById("eyelidStrengthValue").textContent =
+    faceParams.eyelidStrength;
 }
