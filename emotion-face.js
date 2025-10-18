@@ -129,7 +129,9 @@ function drawEyes() {
 function drawEye(size, isLeft) {
   push();
   // 左右で角度を反転させる（目全体の回転）
-  let angle = isLeft ? faceParams.eyeAndEyelidRotation : -faceParams.eyeAndEyelidRotation;
+  let angle = isLeft
+    ? faceParams.eyeAndEyelidRotation
+    : -faceParams.eyeAndEyelidRotation;
   rotate(radians(angle));
 
   // 白目部分
@@ -203,17 +205,28 @@ function drawEye(size, isLeft) {
   // 下瞼を描画
   if (faceParams.lowerEyelidStrength > 0) {
     push();
-    drawingContext.save();
-
-    // 円形のクリッピングパスを作成（少し内側にして輪郭を残す）
-    drawingContext.beginPath();
-    drawingContext.arc(0, 0, size / 2 - 1, 0, TWO_PI);
-    drawingContext.clip();
-
+    
     // 下瞼の位置をパラメータで調整
     let lowerEyelidY = size * 0.5 - size * faceParams.lowerEyelidStrength;
     let arcHeight = size * 0.2 + size * faceParams.lowerEyelidStrength * 0.3;
     
+    // まず目の輪郭の下部分をピンクで上書き（下瞼の弧から下の部分）
+    stroke(255, 235, 250); // 背景と同じピンク色
+    strokeWeight(3);
+    noFill();
+    
+    // 目の円の下部分を描画（下瞼の位置から下）
+    let startAngle = asin((lowerEyelidY) / (size / 2));
+    if (!isNaN(startAngle)) {
+      arc(0, 0, size, size, startAngle, PI - startAngle);
+    }
+    
+    // クリッピングマスクを設定して目の中だけ描画
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.arc(0, 0, size / 2 - 1, 0, TWO_PI);
+    drawingContext.clip();
+
     // 下瞼から下の部分をピンクで塗りつぶす
     fill(255, 235, 250); // 背景と同じピンク色
     noStroke();
@@ -230,7 +243,7 @@ function drawEye(size, isLeft) {
     vertex(size * 0.35, size);
     vertex(-size * 0.35, size);
     endShape(CLOSE);
-    
+
     // 下瞼の線を描画（上向きの弧）
     stroke(0);
     strokeWeight(2);
@@ -258,60 +271,72 @@ function drawMouth() {
   // 口の基本的な幅と高さ
   let mouthWidth = 80;
   let mouthHeight = 10;
-  
+
   // 口角の上がり具合（-30〜30）
   let cornerLift = faceParams.mouthCurve;
-  
+
   // 口が開いている場合は高さを調整
   if (faceParams.mouthOpen > 0) {
     mouthHeight = mouthHeight + faceParams.mouthOpen * 40;
   }
-  
+
   // ベジェ曲線で口を描画
   beginShape();
-  
+
   // 左端
   let leftX = -mouthWidth / 2;
   let leftY = -cornerLift;
-  
+
   // 右端
   let rightX = mouthWidth / 2;
   let rightY = -cornerLift;
-  
+
   // 中央
   let centerY = cornerLift * 0.5;
-  
+
   // 上唇
   vertex(leftX, leftY);
   bezierVertex(
-    leftX + mouthWidth * 0.25, centerY - mouthHeight/2,
-    rightX - mouthWidth * 0.25, centerY - mouthHeight/2,
-    rightX, rightY
+    leftX + mouthWidth * 0.25,
+    centerY - mouthHeight / 2,
+    rightX - mouthWidth * 0.25,
+    centerY - mouthHeight / 2,
+    rightX,
+    rightY
   );
-  
+
   // 口が開いている場合は下唇も描く
   if (faceParams.mouthOpen > 0) {
     bezierVertex(
-      rightX - mouthWidth * 0.25, centerY + mouthHeight/2,
-      leftX + mouthWidth * 0.25, centerY + mouthHeight/2,
-      leftX, leftY
+      rightX - mouthWidth * 0.25,
+      centerY + mouthHeight / 2,
+      leftX + mouthWidth * 0.25,
+      centerY + mouthHeight / 2,
+      leftX,
+      leftY
     );
     endShape(CLOSE);
-    
+
     // 口の中を塗りつぶす
     fill(200, 0, 0);
     noStroke();
     beginShape();
     vertex(leftX, leftY);
     bezierVertex(
-      leftX + mouthWidth * 0.25, centerY - mouthHeight/2,
-      rightX - mouthWidth * 0.25, centerY - mouthHeight/2,
-      rightX, rightY
+      leftX + mouthWidth * 0.25,
+      centerY - mouthHeight / 2,
+      rightX - mouthWidth * 0.25,
+      centerY - mouthHeight / 2,
+      rightX,
+      rightY
     );
     bezierVertex(
-      rightX - mouthWidth * 0.25, centerY + mouthHeight/2,
-      leftX + mouthWidth * 0.25, centerY + mouthHeight/2,
-      leftX, leftY
+      rightX - mouthWidth * 0.25,
+      centerY + mouthHeight / 2,
+      leftX + mouthWidth * 0.25,
+      centerY + mouthHeight / 2,
+      leftX,
+      leftY
     );
     endShape(CLOSE);
   } else {
