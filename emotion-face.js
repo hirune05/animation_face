@@ -3,7 +3,8 @@ let faceParams = {
   pupilAngle: 0,
   eyelidAngle: 0,
   mouthCurve: 0,
-  mouthOpen: 0,
+  mouthHeight: 0, // 口の開き具合（縦方向）
+  mouthWidth: 1, // 口の横幅のスケール
   eyeOpenness: 1,
   eyelidStrength: 0,
   lowerEyelidStrength: 0,
@@ -15,9 +16,10 @@ const emotions = {
     pupilAngle: -10, // 瞳が少し下向き
     eyelidAngle: -25, // 瞼が下に傾く（優しい目）
     mouthCurve: 20,
-    mouthOpen: 0.3,
+    mouthHeight: 0.3, // 口が少し開いている
+    mouthWidth: 1.2, // 口の横幅が少し大きい
     eyeOpenness: 0.2, // ほぼ閉じた目
-    eyelidStrength: 0.25, // 瞼が強く出ている
+    eyelidStrength: 0, // 瞼なし
     lowerEyelidStrength: 0.1, // 下瞼は少し出ている
   },
   sad: {
@@ -26,7 +28,8 @@ const emotions = {
     eyelidAngle: -15, // 瞼が下に傾く（悲しい目）
     pupilShape: 0.9,
     mouthCurve: -20,
-    mouthOpen: 0.1,
+    mouthHeight: 0.1, // 口がわずかに開いている
+    mouthWidth: 0.8, // 口の横幅が小さい
     eyeOpenness: 0.8,
     eyelidStrength: 0.18, // 瞼が中程度に出ている
     lowerEyelidStrength: 0.15, // 下瞼も中程度に出ている
@@ -36,7 +39,8 @@ const emotions = {
     pupilAngle: 0,
     eyelidAngle: 0,
     mouthCurve: 0,
-    mouthOpen: 0,
+    mouthHeight: 0, // 口が閉じている
+    mouthWidth: 1, // 標準の横幅
     eyeOpenness: 1,
     eyelidStrength: 0, // 瞼は出ていない
     lowerEyelidStrength: 0, // 下瞼も出ていない
@@ -46,7 +50,8 @@ const emotions = {
     pupilAngle: 10, // 目自体は少し上向き
     eyelidAngle: 25, // 瞼が上に傾く（やる気目）
     mouthCurve: 15,
-    mouthOpen: 0.4,
+    mouthHeight: 0.4, // 口が適度に開いている
+    mouthWidth: 1.1, // 口の横幅が少し大きい
     eyeOpenness: 1,
     eyelidStrength: 0.15, // 瞼が少し出ている
     lowerEyelidStrength: 0.05, // 下瞼はわずかに出ている
@@ -56,19 +61,21 @@ const emotions = {
     pupilAngle: 5, // 目自体はわずかに上向き
     eyelidAngle: 20, // 瞼が上に傾く（釣り目）
     mouthCurve: -15, // 口角が下がる
-    mouthOpen: 0.3, // 少し開いて歯を食いしばった感じ
+    mouthHeight: 0.3, // 口が少し開いている（歯を食いしばった感じ）
+    mouthWidth: 0.9, // 口の横幅が少し小さい
     eyeOpenness: 0.9,
     eyelidStrength: 0.15, // 少し瞼が出て険しい表情
     lowerEyelidStrength: 0.2, // 下瞼も出て険しさを強調
   },
   laughing: {
-    pupilSize: 0.4,
+    pupilSize: 0.65,
     pupilAngle: -10, // 瞳が少し下向き
     eyelidAngle: -20, // 瞼が大きく下に傾く（笑い目）
-    mouthCurve: 60, // 口角が最大限に上がる
-    mouthOpen: 4, // 口を最大限に開ける
-    eyeOpenness: 0.3, // 目をかなり細める
-    eyelidStrength: 0.25, // 瞼が強く出る（笑いすぎて目が細くなる）
+    mouthCurve: 40, // 口角が最大限に上がる
+    mouthHeight: 3, // 口を大きく開ける
+    mouthWidth: 4, // 口の横幅が最大
+    eyeOpenness: 0.25, // 目をかなり細める
+    eyelidStrength: 0,
     lowerEyelidStrength: 0.2, // 下瞼も出て笑い目になる
   },
 };
@@ -84,7 +91,10 @@ function setup() {
     .getElementById("eyelidAngle")
     .addEventListener("input", updateParams);
   document.getElementById("mouthCurve").addEventListener("input", updateParams);
-  document.getElementById("mouthOpen").addEventListener("input", updateParams);
+  document
+    .getElementById("mouthHeight")
+    .addEventListener("input", updateParams);
+  document.getElementById("mouthWidth").addEventListener("input", updateParams);
   document
     .getElementById("eyeOpenness")
     .addEventListener("input", updateParams);
@@ -278,15 +288,15 @@ function drawMouth() {
   noFill();
 
   // 口の基本的な幅と高さ
-  let mouthWidth = 80;
+  let mouthWidth = 80 * faceParams.mouthWidth;
   let mouthHeight = 10;
 
   // 口角の上がり具合（-30〜30）
   let cornerLift = faceParams.mouthCurve;
 
-  // 口が開いている場合は高さを調整
-  if (faceParams.mouthOpen > 0) {
-    mouthHeight = mouthHeight + faceParams.mouthOpen * 40;
+  // 口の縦方向の開き具合を調整
+  if (faceParams.mouthHeight > 0) {
+    mouthHeight = mouthHeight + faceParams.mouthHeight * 40;
   }
 
   // ベジェ曲線で口を描画
@@ -315,7 +325,7 @@ function drawMouth() {
   );
 
   // 口が開いている場合は下唇も描く
-  if (faceParams.mouthOpen > 0) {
+  if (faceParams.mouthHeight > 0) {
     bezierVertex(
       rightX - mouthWidth * 0.25,
       centerY + mouthHeight / 2,
@@ -384,7 +394,12 @@ function updateParams() {
   faceParams.mouthCurve = parseFloat(
     document.getElementById("mouthCurve").value
   );
-  faceParams.mouthOpen = parseFloat(document.getElementById("mouthOpen").value);
+  faceParams.mouthHeight = parseFloat(
+    document.getElementById("mouthHeight").value
+  );
+  faceParams.mouthWidth = parseFloat(
+    document.getElementById("mouthWidth").value
+  );
   faceParams.eyeOpenness = parseFloat(
     document.getElementById("eyeOpenness").value
   );
@@ -403,7 +418,10 @@ function updateParams() {
     faceParams.eyelidAngle;
   document.getElementById("mouthCurveValue").textContent =
     faceParams.mouthCurve;
-  document.getElementById("mouthOpenValue").textContent = faceParams.mouthOpen;
+  document.getElementById("mouthHeightValue").textContent =
+    faceParams.mouthHeight;
+  document.getElementById("mouthWidthValue").textContent =
+    faceParams.mouthWidth;
   document.getElementById("eyeOpennessValue").textContent =
     faceParams.eyeOpenness;
   document.getElementById("eyelidStrengthValue").textContent =
