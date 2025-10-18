@@ -1,6 +1,6 @@
 let faceParams = {
   pupilSize: 0.7,
-  eyeRotation: 0,
+  pupilAngle: 0,
   eyelidAngle: 0,
   mouthCurve: 0,
   mouthOpen: 0,
@@ -12,7 +12,7 @@ let faceParams = {
 const emotions = {
   happy: {
     pupilSize: 0.5,
-    eyeRotation: -10, // 目自体は少し下向き
+    pupilAngle: -10, // 瞳が少し下向き
     eyelidAngle: -25, // 瞼が下に傾く（優しい目）
     mouthCurve: 20,
     mouthOpen: 0.3,
@@ -22,7 +22,7 @@ const emotions = {
   },
   sad: {
     pupilSize: 0.6,
-    eyeRotation: -5, // 目自体はわずかに下向き
+    pupilAngle: -5, // 目自体はわずかに下向き
     eyelidAngle: -15, // 瞼が下に傾く（悲しい目）
     pupilShape: 0.9,
     mouthCurve: -20,
@@ -33,7 +33,7 @@ const emotions = {
   },
   normal: {
     pupilSize: 0.9,
-    eyeRotation: 0,
+    pupilAngle: 0,
     eyelidAngle: 0,
     mouthCurve: 0,
     mouthOpen: 0,
@@ -43,7 +43,7 @@ const emotions = {
   },
   motivated: {
     pupilSize: 1.0,
-    eyeRotation: 10, // 目自体は少し上向き
+    pupilAngle: 10, // 目自体は少し上向き
     eyelidAngle: 25, // 瞼が上に傾く（やる気目）
     mouthCurve: 15,
     mouthOpen: 0.4,
@@ -53,7 +53,7 @@ const emotions = {
   },
   angry: {
     pupilSize: 0.8,
-    eyeRotation: 5, // 目自体はわずかに上向き
+    pupilAngle: 5, // 目自体はわずかに上向き
     eyelidAngle: 20, // 瞼が上に傾く（釣り目）
     mouthCurve: -15, // 口角が下がる
     mouthOpen: 0.3, // 少し開いて歯を食いしばった感じ
@@ -63,13 +63,13 @@ const emotions = {
   },
   laughing: {
     pupilSize: 0.4,
-    eyeRotation: -10, // 目自体は少し下向き
-    eyelidAngle: -20, // 瞼が大きく下に傾く（爆笑）
-    mouthCurve: 30, // 口角が最大限に上がる
-    mouthOpen: 1.5, // 口を最大限に開ける
+    pupilAngle: -10, // 瞳が少し下向き
+    eyelidAngle: -20, // 瞼が大きく下に傾く（笑い目）
+    mouthCurve: 60, // 口角が最大限に上がる
+    mouthOpen: 4, // 口を最大限に開ける
     eyeOpenness: 0.3, // 目をかなり細める
     eyelidStrength: 0.25, // 瞼が強く出る（笑いすぎて目が細くなる）
-    lowerEyelidStrength: 0.15, // 下瞼も出て笑い目になる
+    lowerEyelidStrength: 0.2, // 下瞼も出て笑い目になる
   },
 };
 
@@ -79,8 +79,10 @@ function setup() {
 
   // スライダーのイベントリスナーを設定
   document.getElementById("pupilSize").addEventListener("input", updateParams);
-  document.getElementById("eyeRotation").addEventListener("input", updateParams);
-  document.getElementById("eyelidAngle").addEventListener("input", updateParams);
+  document.getElementById("pupilAngle").addEventListener("input", updateParams);
+  document
+    .getElementById("eyelidAngle")
+    .addEventListener("input", updateParams);
   document.getElementById("mouthCurve").addEventListener("input", updateParams);
   document.getElementById("mouthOpen").addEventListener("input", updateParams);
   document
@@ -133,9 +135,6 @@ function drawEyes() {
 
 function drawEye(size, isLeft) {
   push();
-  // 左右で角度を反転させる（目全体の回転）
-  let eyeAngle = isLeft ? faceParams.eyeRotation : -faceParams.eyeRotation;
-  rotate(radians(eyeAngle));
 
   // 白目部分
   fill(240, 255, 240);
@@ -157,6 +156,10 @@ function drawEye(size, isLeft) {
     arc(0, 0, size * 0.7, size * 0.4, 0, PI);
   } else {
     // 瞳（黒目）- eyeOpennessに応じて縦方向のサイズを調整
+    push();
+    let pupilAngle = isLeft ? faceParams.pupilAngle : -faceParams.pupilAngle;
+    rotate(radians(pupilAngle));
+
     fill(0);
     noStroke();
     let pupilWidth = size * 0.7 * faceParams.pupilSize;
@@ -169,6 +172,8 @@ function drawEye(size, isLeft) {
       let highlightSize = pupilWidth * 0.2;
       ellipse(0, -pupilHeight * 0.2, highlightSize, highlightSize);
     }
+
+    pop();
   }
 
   // まぶたの効果（目の中に線を引いて上部を塗りつぶす）
@@ -209,22 +214,22 @@ function drawEye(size, isLeft) {
   // 下瞼を描画
   if (faceParams.lowerEyelidStrength > 0) {
     push();
-    
+
     // 下瞼の位置をパラメータで調整
     let lowerEyelidY = size * 0.5 - size * faceParams.lowerEyelidStrength;
     let arcHeight = size * 0.2 + size * faceParams.lowerEyelidStrength * 0.3;
-    
+
     // まず目の輪郭の下部分をピンクで上書き（下瞼の弧から下の部分）
     stroke(255, 235, 250); // 背景と同じピンク色
     strokeWeight(3);
     noFill();
-    
-    // 目の円の下部分を描画（下瞼の位置から下）
-    let startAngle = asin((lowerEyelidY) / (size / 2));
+
+    // 目の円の下部分を描画（下瞼の位置より少し上から下）
+    let startAngle = asin((lowerEyelidY - 5) / (size / 2));
     if (!isNaN(startAngle)) {
       arc(0, 0, size, size, startAngle, PI - startAngle);
     }
-    
+
     // クリッピングマスクを設定して目の中だけ描画
     drawingContext.save();
     drawingContext.beginPath();
@@ -370,8 +375,8 @@ function setEmotion(emotionName) {
 
 function updateParams() {
   faceParams.pupilSize = parseFloat(document.getElementById("pupilSize").value);
-  faceParams.eyeRotation = parseFloat(
-    document.getElementById("eyeRotation").value
+  faceParams.pupilAngle = parseFloat(
+    document.getElementById("pupilAngle").value
   );
   faceParams.eyelidAngle = parseFloat(
     document.getElementById("eyelidAngle").value
@@ -392,8 +397,8 @@ function updateParams() {
 
   // 値の表示を更新
   document.getElementById("pupilSizeValue").textContent = faceParams.pupilSize;
-  document.getElementById("eyeRotationValue").textContent =
-    faceParams.eyeRotation;
+  document.getElementById("pupilAngleValue").textContent =
+    faceParams.pupilAngle;
   document.getElementById("eyelidAngleValue").textContent =
     faceParams.eyelidAngle;
   document.getElementById("mouthCurveValue").textContent =
