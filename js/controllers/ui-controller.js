@@ -1,18 +1,49 @@
 // UI制御関数
 
+// アニメーション用の変数
+let animationStartTime = null;
+let animationDuration = 1000; // 1秒（デフォルト）
+let animationActive = false;
+let startParams = {};
+let targetParams = {};
+
 function setEmotion(emotionName) {
   if (emotions[emotionName]) {
-    // アニメーション効果のために徐々に変化させる
-    let targetParams = emotions[emotionName];
+    // 現在のパラメータを開始値として保存
+    startParams = { ...faceParams };
+    
+    // 目標のパラメータを設定
+    targetParams = emotions[emotionName];
+    
+    // アニメーション開始
+    animationStartTime = millis();
+    animationActive = true;
+  }
+}
 
-    // パラメータを更新
-    for (let key in targetParams) {
-      faceParams[key] = targetParams[key];
-
+// アニメーション更新関数（draw関数から呼び出される）
+function updateAnimation() {
+  if (!animationActive) return;
+  
+  const currentTime = millis();
+  const elapsed = currentTime - animationStartTime;
+  const progress = Math.min(elapsed / animationDuration, 1);
+  
+  // イージング関数（ease-in-out）
+  const easeProgress = progress < 0.5 
+    ? 2 * progress * progress 
+    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+  
+  // 各パラメータを補間
+  for (let key in targetParams) {
+    if (startParams[key] !== undefined) {
+      // 線形補間
+      faceParams[key] = lerp(startParams[key], targetParams[key], easeProgress);
+      
       // スライダーの値も更新
       if (document.getElementById(key)) {
-        document.getElementById(key).value = targetParams[key];
-        document.getElementById(key + "Value").textContent = targetParams[key];
+        document.getElementById(key).value = faceParams[key];
+        document.getElementById(key + "Value").textContent = faceParams[key].toFixed(2);
       } else {
         // 古いパラメータ名から新しいパラメータ名へのマッピング
         const paramMapping = {
@@ -22,12 +53,17 @@ function setEmotion(emotionName) {
         };
         const mappedKey = paramMapping[key];
         if (mappedKey && document.getElementById(mappedKey)) {
-          faceParams[mappedKey] = targetParams[key];
-          document.getElementById(mappedKey).value = targetParams[key];
-          document.getElementById(mappedKey + "Value").textContent = targetParams[key];
+          faceParams[mappedKey] = lerp(startParams[key], targetParams[key], easeProgress);
+          document.getElementById(mappedKey).value = faceParams[mappedKey];
+          document.getElementById(mappedKey + "Value").textContent = faceParams[mappedKey].toFixed(2);
         }
       }
     }
+  }
+  
+  // アニメーション終了判定
+  if (progress >= 1) {
+    animationActive = false;
   }
 }
 
@@ -84,8 +120,20 @@ function updateParams() {
     faceParams.mouthWidth;
 }
 
+// アニメーション速度更新関数
+function updateAnimationSpeed() {
+  const speedValue = parseFloat(document.getElementById("animationSpeed").value);
+  animationDuration = speedValue * 1000; // 秒をミリ秒に変換
+  document.getElementById("animationSpeedValue").textContent = speedValue;
+}
+
 // イベントリスナーの設定
 function setupUIListeners() {
+  // アニメーション速度
+  document
+    .getElementById("animationSpeed")
+    .addEventListener("input", updateAnimationSpeed);
+    
   // 目関連のパラメータ
   document
     .getElementById("eyeOpenness")

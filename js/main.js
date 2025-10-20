@@ -11,6 +11,9 @@ function setup() {
 function draw() {
   background(255, 235, 250); // 薄いピンク色の背景
 
+  // アニメーションを更新
+  updateAnimation();
+
   push();
   translate(width / 2, height / 2);
 
